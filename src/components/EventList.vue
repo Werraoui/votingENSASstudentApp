@@ -17,7 +17,11 @@
     >
       <div class="event-header">
         <h3 class="event-title">{{ event.title }}</h3>
-        <p class="event-date">{{ event.date }}</p>
+        <p class="event-date">{{ formatDate(event.date) }}</p>
+      </div>
+
+      <div v-if="event.img" class="event-image-wrapper">
+        <img :src="event.img" alt="Image de l'événement" class="event-image" />
       </div>
 
       <p class="event-description">{{ event.description }}</p>
@@ -66,6 +70,23 @@ const errorMessage = ref('');
 const isVoting = ref(false);
 const currentUser = ref(null);
 const userVotes = ref({}); // { [eventId]: 'yes' | 'no' }
+
+const formatDate = (value) => {
+  if (!value) return '';
+
+  // Firestore Timestamp -> convertir en date lisible
+  if (typeof value === 'object' && 'seconds' in value) {
+    const d = new Date(value.seconds * 1000);
+    return d.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
+  // Si c'est déjà une chaîne (ex: "9 décembre 2025")
+  return value;
+};
 
 const auth = getAuth();
 onAuthStateChanged(auth, (user) => {
@@ -217,6 +238,18 @@ onMounted(fetchEvents);
   margin: 4px 0 10px;
   font-size: 0.9rem;
   color: #555;
+}
+
+.event-image-wrapper {
+  margin: 6px 0 10px;
+}
+
+.event-image {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
 }
 
 .event-stats {
